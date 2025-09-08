@@ -5,15 +5,13 @@ const ASSETS = [
   './index.html',
   './styles.css',
   './app.js',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './manifest.webmanifest'
 ];
 
 self.addEventListener('install', (e)=>{
   e.waitUntil((async ()=>{
     const c = await caches.open(CACHE_NAME);
-    await c.addAll(ASSETS);
+    try { await c.addAll(ASSETS); } catch(e){}
     self.skipWaiting();
   })());
 });
@@ -40,7 +38,6 @@ self.addEventListener('fetch', (e)=>{
   })());
 });
 
-// Teavituse klikil ava / fokusseeri app
 self.addEventListener('notificationclick', (event)=>{
   event.notification.close();
   event.waitUntil((async ()=>{
