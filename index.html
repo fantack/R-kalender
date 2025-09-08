@@ -7,20 +7,147 @@
   <meta name="theme-color" content="#111827" />
   <meta name="description" content="R‑kalender — lihtne 7-päeva nädalakalender teavitustega" />
 
-  <!-- PWA manifest -->
-  <link rel="manifest" href="manifest.webmanifest" />
+  <!-- Manifest lisatakse dünaamiliselt Blobina -->
+  <link id="manifestLink" rel="manifest" href="">
 
-  <!-- Ikonid: säilita kohalikud + eelistatud väline pilt -->
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <!-- Eelistatud tab/logo (favicon) sinu pildiga -->
+  <!-- Tab/logo ja Apple ikoon (sinu pilt) -->
   <link rel="icon" href="https://i.pinimg.com/1200x/7e/fc/70/7efc700398ef96d975700984b6c4ed63.jpg" sizes="any" />
-  <!-- Apple jaoks ka otse see pilt (viimane kirje võetakse tihti eelisjärjekorras) -->
   <link rel="apple-touch-icon" href="https://i.pinimg.com/1200x/7e/fc/70/7efc700398ef96d975700984b6c4ed63.jpg" />
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+  :root{
+    --bg:#0b1220;
+    --card:#121a2b;
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+    --primary:#2563eb;
+    --border:#243044;
+    --chip:#1e293b;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    font-family:system-ui,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+    background:linear-gradient(180deg,#0b1220,#0a1020 60%,#0a0f1d);
+    color:var(--text);
+    padding-bottom:var(--safe-bottom);
+    -webkit-tap-highlight-color: rgba(255,255,255,0);
+  }
+
+  .app-header{
+    position:sticky; top:0; z-index:20;
+    background:rgba(11,18,32,.8); backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--border);
+    padding:calc(12px + var(--safe-top)) 12px 10px;
+  }
+  .header-row{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .branding{display:flex; align-items:center; gap:10px}
+  .app-emoji{font-size:28px}
+  h1{font-size:20px; margin:0}
+  .header-actions{display:flex; gap:8px}
+
+  .week-banner{
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+    padding:8px 0;
+  }
+  .banner-left,.banner-right{flex:1; display:flex; align-items:center; gap:8px}
+  #weekNote{width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:#0f1627; color:var(--text); font-size:16px}
+  .emoji-select{padding:10px; border-radius:12px; border:1px solid var(--border); background:#0f1627; color:var(--text); font-size:16px}
+  .subhead{display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; color:var(--muted)}
+
+  main{padding:12px; display:grid; gap:12px; max-width:900px; margin:0 auto}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px; padding:12px;
+  }
+  h2{margin:8px 0 12px; font-size:16px}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .grid .full{grid-column:1/-1}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+  input[type="text"], input[type="time"], select, textarea{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+    background:#0f1627; color:var(--text); font-size:16px; min-height:44px;
+  }
+  textarea{resize:vertical}
+  .btn{
+    appearance:none; border:1px solid var(--border); background:#0f1627; color:var(--text);
+    border-radius:12px; padding:12px 16px; cursor:pointer; font-size:16px; min-height:44px;
+  }
+  .btn.primary{background:var(--primary); border-color:#1d4ed8}
+  .btn:active{transform:translateY(1px)}
+  .icon-btn{
+    background:transparent; border:0; color:var(--text); cursor:pointer; font-size:18px;
+    width:44px; height:44px; display:inline-grid; place-items:center; border-radius:8px;
+  }
+  .icon-btn:active{background:#0f1627}
+
+  .colors{display:flex; flex-wrap:wrap; gap:8px}
+  .color-chip{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:999px;
+    background:var(--chip); border:1px solid var(--border); cursor:pointer; user-select:none;
+    min-height:40px;
+  }
+  .color-chip input{display:none}
+  .color-chip span{font-size:13px; color:var(--muted)}
+  .color-chip.red{--c:#ef4444}
+  .color-chip.yellow{--c:#f59e0b}
+  .color-chip.blue{--c:#3b82f6}
+  .color-chip.green{--c:#10b981}
+  .color-chip.purple{--c:#a855f7}
+  .color-chip.brown{--c:#8b5e3c}
+  .color-chip.pink{--c:#ec4899}
+  .color-chip.orange{--c:#f97316}
+  .color-chip::before{content:""; width:14px; height:14px; border-radius:50%; background:var(--c); display:inline-block}
+
+  .calendar{ display:grid; gap:8px; }
+  .day-col{
+    border:1px solid var(--border); border-radius:12px; padding:8px;
+    background:#0f1627;
+  }
+  .day-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+  .day-name{font-weight:600}
+  .day-date{font-size:12px; color:var(--muted)}
+  .event-list{display:flex; flex-direction:column; gap:6px}
+
+  .event-item{
+    display:grid; grid-template-columns:auto 1fr auto; gap:8px; align-items:center;
+    padding:10px; border:1px solid var(--border); border-radius:10px; background:#0c1323;
+  }
+  .event-item .dot{width:12px; height:12px; border-radius:50%; display:inline-block}
+  .event-item .line1{display:flex; gap:8px; align-items:center}
+  .event-item .time{font-variant-numeric:tabular-nums; color:#cbd5e1}
+  .event-item .title{font-weight:600}
+  .event-item .notes{color:var(--muted); font-size:12px}
+
+  .actions{display:flex; gap:8px; justify-content:flex-end}
+  .ml{margin-left:16px}
+
+  .footer{padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); text-align:center; color:var(--muted)}
+
+  @media (min-width:720px){
+    .calendar{grid-template-columns:repeat(7,1fr)}
+  }
+  @media (max-width:719px){
+    .calendar{grid-template-columns:1fr}
+    .grid{grid-template-columns:1fr}
+    .header-actions .btn{padding:10px 12px}
+    h1{font-size:18px}
+  }
+
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0}
+  </style>
 </head>
 <body>
   <header class="app-header">
@@ -148,6 +275,478 @@
     </div>
   </template>
 
-  <script src="app.js" type="module"></script>
+  <script type="module">
+  // === Manifest (Blobina) ===
+  (function attachManifest(){
+    const manifest = {
+      name: "R‑kalender",
+      short_name: "R‑kalender",
+      start_url: "./",
+      display: "standalone",
+      background_color: "#0b1220",
+      theme_color: "#111827",
+      description: "Lihtne 7-päeva nädalakalender teavitustega.",
+      icons: [
+        {
+          src: "https://i.pinimg.com/1200x/7e/fc/70/7efc700398ef96d975700984b6c4ed63.jpg",
+          type: "image/jpeg",
+          sizes: "512x512",
+          purpose: "any"
+        }
+      ]
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
+    const link = document.getElementById('manifestLink');
+    link.setAttribute('href', url);
+  })();
+
+  // === App loogika (endine app.js) ===
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  const state = {
+    events: [],
+    settings: {
+      weekEmoji: '📅',
+      weekNote: '',
+      soundOn: false,
+    },
+    installPromptEvent: null,
+    timers: new Map(),
+  };
+
+  const DAYS_ET = ['Esmaspäev','Teisipäev','Kolmapäev','Neljapäev','Reede','Laupäev','Pühapäev'];
+  const pad2 = n => String(n).padStart(2,'0');
+
+  function getTodayLocal() { return new Date(); }
+  function getWeekStart(d = getTodayLocal()){
+    const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = (dt.getDay()+6)%7; // 0=Mon
+    dt.setDate(dt.getDate()-day);
+    dt.setHours(0,0,0,0);
+    return dt;
+  }
+  function dateToISO(d){ return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+  function isoToDate(iso){
+    const [y,m,da] = iso.split('-').map(Number);
+    const d = new Date(y, m-1, da);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function load(){
+    const ws = dateToISO(getWeekStart());
+    const evRaw = localStorage.getItem('rk_events_'+ws);
+    state.events = evRaw ? JSON.parse(evRaw) : [];
+    const stRaw = localStorage.getItem('rk_settings_'+ws);
+    if (stRaw) Object.assign(state.settings, JSON.parse(stRaw));
+  }
+  function save(){
+    const ws = dateToISO(getWeekStart());
+    localStorage.setItem('rk_events_'+ws, JSON.stringify(state.events));
+    localStorage.setItem('rk_settings_'+ws, JSON.stringify(state.settings));
+  }
+
+  function minutesFromTimeStr(t){
+    if (!t) return null;
+    const [h,m] = t.split(':').map(Number);
+    return h*60 + m;
+  }
+  function timeStrFromMinutes(min){
+    const h = Math.floor(min/60), m = min%60;
+    return \`\${pad2(h)}:\${pad2(m)}\`;
+  }
+  function dayDateOfWeek(dayIndex){
+    const ws = getWeekStart();
+    const d = new Date(ws);
+    d.setDate(ws.getDate()+dayIndex);
+    return d;
+  }
+  function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+  function buildDaySelect(){
+    const sel = $('#day');
+    sel.innerHTML = '';
+    for (let i=0;i<7;i++){
+      const dd = dayDateOfWeek(i);
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = \`\${DAYS_ET[i]} (\${dd.getDate()}.\${dd.getMonth()+1})\`;
+      if (sameDay(dd, getTodayLocal())) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+  function renderWeekRange(){
+    const ws = getWeekStart();
+    const we = new Date(ws); we.setDate(ws.getDate()+6);
+    $('#weekRange').textContent = \`\${ws.getDate()}.\${ws.getMonth()+1}.\${ws.getFullYear()} – \${we.getDate()}.\${we.getMonth()+1}.\${we.getFullYear()}\`;
+  }
+
+  function renderCalendar(){
+    const cal = $('#calendar');
+    cal.innerHTML = '';
+    const wsISO = dateToISO(getWeekStart());
+    const evs = state.events
+      .filter(e => e.weekStartISO === wsISO)
+      .slice()
+      .sort((a,b)=> a.dayIndex-b.dayIndex || a.startMin-b.startMin);
+
+    for (let i=0;i<7;i++){
+      const dayWrap = document.createElement('div');
+      dayWrap.className = 'day-col';
+      const head = document.createElement('div');
+      head.className = 'day-head';
+      const d = dayDateOfWeek(i);
+      const name = document.createElement('div'); name.className='day-name'; name.textContent = DAYS_ET[i];
+      const date = document.createElement('div'); date.className='day-date'; date.textContent = \`\${d.getDate()}.\${d.getMonth()+1}\`;
+      head.append(name,date);
+      const list = document.createElement('div');
+      list.className = 'event-list';
+      const dayItems = evs.filter(e=>e.dayIndex===i);
+      for(const e of dayItems){
+        const tpl = document.getElementById('eventItemTpl');
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        node.dataset.id = e.id;
+        node.querySelector('.dot').style.background = colorToHex(e.color);
+        const t1 = node.querySelector('.time');
+        const timeStr = e.endMin!=null ? \`\${timeStrFromMinutes(e.startMin)}–\${timeStrFromMinutes(e.endMin)}\` : \`\${timeStrFromMinutes(e.startMin)}\`;
+        t1.textContent = timeStr;
+        node.querySelector('.title').textContent = e.title;
+        const notes = node.querySelector('.notes');
+        notes.textContent = e.notes || '';
+        node.querySelector('.edit').addEventListener('click', ()=>editEvent(e.id));
+        node.querySelector('.del').addEventListener('click', ()=>deleteEvent(e.id));
+        list.appendChild(node);
+      }
+      dayWrap.append(head, list);
+      cal.appendChild(dayWrap);
+    }
+  }
+
+  function colorToHex(c){
+    switch(c){
+      case 'red': return '#ef4444';
+      case 'yellow': return '#f59e0b';
+      case 'blue': return '#3b82f6';
+      case 'green': return '#10b981';
+      case 'purple': return '#a855f7';
+      case 'brown': return '#8b5e3c';
+      case 'pink': return '#ec4899';
+      case 'orange': return '#f97316';
+      default: return '#64748b';
+    }
+  }
+
+  async function requestNotificationPermission(){
+    if (!('Notification' in window)) {
+      alert('Teavitused ei ole selles brauseris toetatud.');
+      return;
+    }
+    const res = await Notification.requestPermission();
+    if (res !== 'granted'){
+      alert('Teavitused keelati. Saad lubada brauseri seadetes.');
+    }
+    updateNotifyBtn();
+  }
+
+  function supportsScheduledNotifications(){
+    return ('serviceWorker' in navigator) && ('showNotification' in ServiceWorkerRegistration.prototype) && ('TimestampTrigger' in window);
+  }
+  function scheduleAll(){
+    clearAllTimers();
+    const wsISO = dateToISO(getWeekStart());
+    for (const e of state.events.filter(ev=>ev.weekStartISO===wsISO)){
+      scheduleForEvent(e);
+    }
+  }
+  function scheduleForEvent(e){
+    const startDate = dateForEventTime(e.dayIndex, e.startMin);
+    const endDate = e.endMin!=null ? dateForEventTime(e.dayIndex, e.endMin) : null;
+
+    if (supportsScheduledNotifications()){
+      navigator.serviceWorker.ready.then(reg=>{
+        if (e.notifyStart) {
+          reg.showNotification('R‑kalender', {
+            body: buildBody(e, 'Algus: ' + timeStrFromMinutes(e.startMin)),
+            tag: \`start-\${e.id}\`,
+            showTrigger: new TimestampTrigger(startDate.getTime()),
+            data: { eventId: e.id, type: 'start' }
+          }).catch(console.warn);
+        }
+        if (e.notifyEnd && endDate) {
+          reg.showNotification('R‑kalender', {
+            body: buildBody(e, 'Lõpp: ' + timeStrFromMinutes(e.endMin)),
+            tag: \`end-\${e.id}\`,
+            showTrigger: new TimestampTrigger(endDate.getTime()),
+            data: { eventId: e.id, type: 'end' }
+          }).catch(console.warn);
+        }
+      });
+    } else {
+      if (e.notifyStart) setLocalTimer(\`start-\${e.id}\`, startDate, ()=>showNow(e,'start'));
+      if (e.notifyEnd && endDate) setLocalTimer(\`end-\${e.id}\`, endDate, ()=>showNow(e,'end'));
+    }
+  }
+  function buildBody(e, prefix){
+    const parts = [prefix, e.title];
+    if (e.notes) parts.push(e.notes);
+    const d = dayDateOfWeek(e.dayIndex);
+    parts.push(\`\${DAYS_ET[e.dayIndex]} \${d.getDate()}.\${d.getMonth()+1}\`);
+    return parts.join(' • ');
+  }
+  function dateForEventTime(dayIndex, minutes){
+    const d = dayDateOfWeek(dayIndex);
+    const h = Math.floor(minutes/60), m = minutes%60;
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+  function setLocalTimer(key, when, cb){
+    const delta = when.getTime() - Date.now();
+    if (delta <= 0){ cb(); return; }
+    const to = setTimeout(cb, Math.min(delta, 0x7fffffff));
+    state.timers.set(key, to);
+  }
+  function clearAllTimers(){
+    for (const to of state.timers.values()) clearTimeout(to);
+    state.timers.clear();
+  }
+  function showNow(e, type){
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    const body = buildBody(e, type==='start' ? ('Algus: ' + timeStrFromMinutes(e.startMin)) : ('Lõpp: ' + timeStrFromMinutes(e.endMin)));
+    const n = new Notification('R‑kalender', { body, tag: \`\${type}-\${e.id}\` });
+    if (state.settings.soundOn){ try { playBeep(); } catch {} }
+    n.onclick = ()=> window.focus();
+  }
+  function playBeep(){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    const now = ctx.currentTime;
+    o.frequency.setValueAtTime(880, now);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.3, now+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now+0.6);
+    o.start(now);
+    o.stop(now+0.62);
+  }
+
+  // Install (A2HS) voog
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    state.installPromptEvent = e;
+    $('#btnInstall').style.display = 'inline-block';
+  });
+  $('#btnInstall').addEventListener('click', async ()=>{
+    if (state.installPromptEvent){
+      state.installPromptEvent.prompt();
+      const choice = await state.installPromptEvent.userChoice;
+      if (choice.outcome === 'accepted'){
+        $('#btnInstall').textContent = 'Lisatud';
+      }
+      state.installPromptEvent = null;
+    } else {
+      alert('Lisa avaekraanile: Chrome -> 3 täppi -> Lisa avalehele');
+    }
+  });
+
+  // CRUD
+  function addEventFromForm(evt){
+    evt.preventDefault();
+    const title = $('#title').value.trim();
+    if (!title) return;
+    const dayIndex = Number($('#day').value);
+    const startMin = minutesFromTimeStr($('#start').value);
+    const endMin = minutesFromTimeStr($('#end').value);
+    if (endMin!=null && endMin < startMin){
+      alert('Lõppaeg peab olema hiljem kui algusaeg.');
+      return;
+    }
+    const color = ($('input[name="color"]:checked')?.value)||'blue';
+    const notifyStart = $('#notifyStart').checked;
+    const notifyEnd = $('#notifyEnd').checked;
+    const notes = $('#notes').value.trim();
+    const id = (crypto?.randomUUID?.() || String(Date.now())+Math.random().toString(16).slice(2));
+    const wsISO = dateToISO(getWeekStart());
+    const e = { id, title, notes, color, dayIndex, startMin, endMin, notifyStart, notifyEnd, weekStartISO: wsISO };
+    state.events.push(e);
+    save();
+    renderCalendar();
+    scheduleForEvent(e);
+    $('#eventForm').reset();
+  }
+  function editEvent(id){
+    const e = state.events.find(x=>x.id===id);
+    if (!e) return;
+    $('#title').value = e.title;
+    $('#day').value = String(e.dayIndex);
+    $('#start').value = timeStrFromMinutes(e.startMin);
+    $('#end').value = e.endMin!=null ? timeStrFromMinutes(e.endMin) : '';
+    const radio = document.querySelector(\`#colorGroup input[value="\${e.color}"]\`);
+    if (radio) radio.checked = true;
+    $('#notifyStart').checked = !!e.notifyStart;
+    $('#notifyEnd').checked = !!e.notifyEnd;
+    $('#notes').value = e.notes || '';
+    const btn = $('#eventForm .btn.primary');
+    btn.textContent = 'Uuenda';
+    const onSubmit = (ev)=>{
+      ev.preventDefault();
+      e.title = $('#title').value.trim();
+      e.dayIndex = Number($('#day').value);
+      e.startMin = minutesFromTimeStr($('#start').value);
+      e.endMin = minutesFromTimeStr($('#end').value);
+      e.color = ($('input[name="color"]:checked')?.value)||'blue';
+      e.notifyStart = $('#notifyStart').checked;
+      e.notifyEnd = $('#notifyEnd').checked;
+      e.notes = $('#notes').value.trim();
+      save();
+      renderCalendar();
+      scheduleAll();
+      $('#eventForm').reset();
+      btn.textContent = 'Lisa';
+      $('#eventForm').removeEventListener('submit', onSubmit);
+      $('#eventForm').addEventListener('submit', addEventFromForm, { once:true });
+    };
+    $('#eventForm').removeEventListener('submit', addEventFromForm);
+    $('#eventForm').addEventListener('submit', onSubmit, { once:true });
+  }
+  function deleteEvent(id){
+    const idx = state.events.findIndex(x=>x.id===id);
+    if (idx<0) return;
+    state.events.splice(idx,1);
+    save();
+    renderCalendar();
+    scheduleAll();
+  }
+
+  // Seaded
+  function loadSettingsToUI(){
+    $('#weekEmoji').textContent = state.settings.weekEmoji || '📅';
+    $('#weekEmojiSelect').value = state.settings.weekEmoji || '📅';
+    $('#weekNote').value = state.settings.weekNote || '';
+    $('#soundOn').checked = !!state.settings.soundOn;
+  }
+  function bindSettings(){
+    $('#weekEmojiSelect').addEventListener('change', ()=>{
+      state.settings.weekEmoji = $('#weekEmojiSelect').value;
+      $('#weekEmoji').textContent = state.settings.weekEmoji;
+      save();
+    });
+    $('#weekNote').addEventListener('input', ()=>{
+      state.settings.weekNote = $('#weekNote').value.slice(0,120);
+      save();
+    });
+    $('#soundOn').addEventListener('change', ()=>{
+      state.settings.soundOn = $('#soundOn').checked;
+      save();
+    });
+  }
+
+  function updateNotifyBtn(){
+    const b = $('#btnNotify');
+    if (!('Notification' in window)) { b.disabled=true; b.textContent='Teavitused mitte toetatud'; return; }
+    if (Notification.permission === 'granted'){ b.textContent = 'Teavitused lubatud'; b.disabled=true; }
+    else { b.textContent = 'Luba teavitused'; b.disabled=false; }
+  }
+
+  // Service worker (Blobina, et ühe failina töötaks)
+  async function registerSW(){
+    if (!('serviceWorker' in navigator)) return;
+    const swSource = `
+      const CACHE_NAME='rkalender-v1';
+      self.addEventListener('install', e=>{
+        e.waitUntil((async()=>{
+          const c = await caches.open(CACHE_NAME);
+          try { await c.addAll([ self.registration.scope ]); } catch(e){}
+          self.skipWaiting();
+        })());
+      });
+      self.addEventListener('activate', e=>{
+        e.waitUntil((async()=>{
+          const keys=await caches.keys();
+          await Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)));
+          self.clients.claim();
+        })());
+      });
+      self.addEventListener('fetch', e=>{
+        const req = e.request;
+        e.respondWith((async()=>{
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          try { return await fetch(req); }
+          catch { return caches.match(self.registration.scope); }
+        })());
+      });
+      self.addEventListener('notificationclick', (event)=>{
+        event.notification.close();
+        event.waitUntil((async ()=>{
+          const allClients = await clients.matchAll({ type:'window', includeUncontrolled:true });
+          const url = self.registration.scope;
+          const client = allClients.find(c => c.url.startsWith(url));
+          if (client){ client.focus(); client.postMessage({ type:'focus' }); }
+          else { await clients.openWindow(url); }
+        })());
+      });
+    `;
+    try{
+      const url = URL.createObjectURL(new Blob([swSource], { type: 'text/javascript' }));
+      const reg = await navigator.serviceWorker.register(url);
+      console.log('SW registreeritud', reg.scope);
+    }catch(e){
+      console.warn('SW viga', e);
+    }
+  }
+
+  async function requestPersistent(){
+    if (navigator.storage && navigator.storage.persist){
+      try { await navigator.storage.persist(); } catch {}
+    }
+  }
+  function initDayDefaults(){
+    const start = $('#start');
+    const now = new Date();
+    start.value = \`\${pad2(now.getHours())}:\${pad2(Math.floor(now.getMinutes()/5)*5)}\`;
+  }
+  function bindUI(){
+    $('#btnNotify').addEventListener('click', requestNotificationPermission);
+    $('#eventForm').addEventListener('submit', addEventFromForm);
+    $('#resetForm').addEventListener('click', ()=>$('#eventForm').reset());
+  }
+
+  (async function main(){
+    await registerSW();
+    await requestPersistent();
+    load();
+    buildDaySelect();
+    renderWeekRange();
+    renderCalendar();
+    loadSettingsToUI();
+    bindSettings();
+    bindUI();
+    initDayDefaults();
+    updateNotifyBtn();
+    scheduleAll();
+  })();
+
+  setInterval(()=>{
+    const wsNow = dateToISO(getWeekStart());
+    const lastWs = (state.events[0]?.weekStartISO) || localStorage.getItem('rk_last_ws');
+    if (lastWs !== wsNow){
+      localStorage.setItem('rk_last_ws', wsNow);
+      load();
+      buildDaySelect();
+      renderWeekRange();
+      renderCalendar();
+      loadSettingsToUI();
+      scheduleAll();
+    }
+  }, 60*1000);
+
+  navigator.serviceWorker?.addEventListener?.('message', (e)=>{
+    if (e?.data?.type==='focus') window.focus();
+  });
+  </script>
 </body>
 </html>
