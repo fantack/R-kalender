@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>R‑kalender</title>
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="R‑kalender — lihtne 7-päeva nädalakalender teavitustega" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-row">
+      <div class="branding">
+        <span class="app-emoji" id="weekEmoji">📅</span>
+        <h1>R‑kalender</h1>
+      </div>
+      <div class="header-actions">
+        <button id="btnNotify" class="btn primary">Luba teavitused</button>
+        <button id="btnInstall" class="btn">Lisa avaekraanile</button>
+      </div>
+    </div>
+    <div class="week-banner">
+      <div class="banner-left">
+        <label for="weekEmojiSelect" class="sr-only">Nädala emootikon</label>
+        <select id="weekEmojiSelect" class="emoji-select" title="Nädala emootikon">
+          <option value="💧">💧 Vesi</option>
+          <option value="🎉">🎉 Pidu</option>
+          <option value="🍷">🍷 Vein</option>
+          <option value="🍦">🍦 Jäätis</option>
+          <option value="🍔">🍔 Burger</option>
+          <option value="✈️">✈️ Lennuk</option>
+          <option value="🏠">🏠 Maja</option>
+          <option value="🏋️">🏋️ Hantel</option>
+          <option value="🍆">🍆 Baklažaan</option>
+          <option value="🏙️">🏙️ Linn</option>
+          <option value="⚽">⚽ Jalgpall</option>
+          <option value="🪁">🪁 Lohe</option>
+          <option value="⚓">⚓ Ankur</option>
+          <option value="✝️">✝️ Rist</option>
+          <option value="📚">📚 Raamat</option>
+          <option value="🏢">🏢 Kontor</option>
+          <option value="🏫">🏫 Kool</option>
+        </select>
+      </div>
+      <div class="banner-right">
+        <input id="weekNote" type="text" placeholder="Nädala märksõna / märkus…" />
+      </div>
+    </div>
+    <div class="subhead">
+      <div id="weekRange"></div>
+      <div class="sound-toggle">
+        <label><input type="checkbox" id="soundOn"> Mängi eristuvat heli, kui rakendus on avatud</label>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Lisa tegevus</h2>
+      <form id="eventForm">
+        <div class="grid">
+          <div>
+            <label for="title">Pealkiri</label>
+            <input id="title" type="text" required placeholder="Nt Treening / Koosolek" />
+          </div>
+          <div>
+            <label for="day">Päev</label>
+            <select id="day" required></select>
+          </div>
+          <div>
+            <label for="start">Algus</label>
+            <input id="start" type="time" step="300" required />
+          </div>
+          <div>
+            <label for="end">Lõpp (valikuline)</label>
+            <input id="end" type="time" step="300" />
+          </div>
+          <div class="full">
+            <label>Värv</label>
+            <div class="colors" id="colorGroup" role="group" aria-label="Värvivalik">
+              <label class="color-chip red"><input type="radio" name="color" value="red" checked /><span>punane</span></label>
+              <label class="color-chip yellow"><input type="radio" name="color" value="yellow" /><span>kollane</span></label>
+              <label class="color-chip blue"><input type="radio" name="color" value="blue" /><span>sinine</span></label>
+              <label class="color-chip green"><input type="radio" name="color" value="green" /><span>roheline</span></label>
+              <label class="color-chip purple"><input type="radio" name="color" value="purple" /><span>lilla</span></label>
+              <label class="color-chip brown"><input type="radio" name="color" value="brown" /><span>pruun</span></label>
+              <label class="color-chip pink"><input type="radio" name="color" value="pink" /><span>roosa</span></label>
+              <label class="color-chip orange"><input type="radio" name="color" value="orange" /><span>oranž</span></label>
+            </div>
+          </div>
+          <div class="full">
+            <label><input type="checkbox" id="notifyStart" checked /> Teavita alguses</label>
+            <label class="ml"><input type="checkbox" id="notifyEnd" /> Teavita lõpus</label>
+          </div>
+          <div class="full">
+            <label for="notes">Märkmed (valikuline)</label>
+            <textarea id="notes" rows="2" placeholder="Lühikirjeldus"></textarea>
+          </div>
+          <div class="full actions">
+            <button class="btn primary" type="submit">Lisa</button>
+            <button class="btn" type="button" id="resetForm">Tühjenda</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Nädala tegevused</h2>
+      <div id="calendar" class="calendar"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Rakendus töötab ka võrguühenduseta. Teavitused toimivad parimal saadaoleval viisil.</small>
+  </footer>
+
+  <template id="eventItemTpl">
+    <div class="event-item">
+      <div class="left">
+        <span class="dot"></span>
+      </div>
+      <div class="mid">
+        <div class="line1">
+          <span class="time"></span>
+          <span class="title"></span>
+        </div>
+        <div class="line2 notes"></div>
+      </div>
+      <div class="right">
+        <button class="icon-btn edit" title="Muuda">✏️</button>
+        <button class="icon-btn del" title="Kustuta">🗑️</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
