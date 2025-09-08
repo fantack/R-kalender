@@ -129,7 +129,7 @@ textarea{resize:vertical}
 }
 @media (max-width:719px){
   .calendar{grid-template-columns:1fr}
-  .grid{grid-template-columns:1fr} /* vorm üherealine mobiilil */
+  .grid{grid-template-columns:1fr} /* mobiil: vorm üherealine */
   .header-actions .btn{padding:10px 12px}
   h1{font-size:18px}
 }
